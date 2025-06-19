@@ -1,28 +1,82 @@
 import pygame
-# 标题
-TITLE_NAME = "ARCADE"
-
 
 # ---------------------------------------
 # 屏幕处理
 
 SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-FPS = 60
-START_PNG_PATH = './public/StartPng.png'
+SCREEN_HEIGHT = 800
+FPS = 120
 
+TILE_SIZE = 40  #(20*20)
+
+NUM_ROWS = SCREEN_HEIGHT // TILE_SIZE
+NUM_COLS = SCREEN_WIDTH // TILE_SIZE 
+NUM_COLS_BUFFERED = NUM_COLS + 4 
+
+ROAD_START_ROW = NUM_ROWS // 2 - 1                  #(0~19 )
+# 这个是道路的索引
+LANE_ROW_INDICES = [ROAD_START_ROW, ROAD_START_ROW + 1, ROAD_START_ROW + 2 , ROAD_START_ROW+3]
 # ---------------------------------------
 
 
 
-
 # ---------------------------------------
-# Button 样式
+# 开始游戏Button 样式
+
+# 开始游戏的按钮 边角弯曲程度
 GAME_START_BUTTON_BORDER_RADIUS = 10
 
 # 按钮宽度
 BUTTON_BEGIN_WIDTH = 280
 BUTTON_BEGIN_HEIGHT = 70
 BUTTON_BEGIN_SPACING = 30
+# ---------------------------------------
+
+
+
+
 
 # ---------------------------------------
+# 简介的外观参数
+INSTRUCTION_RETURN_WIDTH = 120
+INSTRUCTION_RETURN_HEIGHT = 50
+INSTRUCTION_X = 600
+INSTRUCTION_Y = 20
+# ---------------------------------------
+
+
+
+
+
+
+# ---------------------------------------
+# 选择文章的按钮
+
+ARTICLE_CHOOSE_BUTTON_X = 140
+ARTICLE_CHOOSE_BUTTON_Y = 200
+ARTICLE_CHOOSE_BUTTON_WIDTH = 500
+ARTICLE_CHOOSE_BUTTON_HEIGHT = 100
+
+ARTICLE_CHOOSE_BUTTON_INFO_SUC_X = 300
+ARTICLE_CHOOSE_BUTTON_INFO_SUC_Y = 300
+
+
+ARTICLE_CHOOSEOVER_START_X  = 140
+ARTICLE_CHOOSEOVER_START_Y = 400
+ARTICLE_CHOOSEOVER_START_WIDTH  = 500
+ARTICLE_CHOOSEOVER_START_HEIGHT = 100
+# ---------------------------------------
+
+
+REBUGIN_BUTTON_START_X = 150
+REBUGIN_BUTTON_START_Y = 300
+REBUGIN_BUTTON_START_WIDTH = 500
+REBUGIN_BUTTON_START_HEIGHT = 100
+
+
+REPORT_START_X = 400
+REPORT_START_Y = 200
+
+
+
+

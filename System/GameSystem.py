@@ -1,80 +1,129 @@
-
 import pygame as g
-from Common import Appearance as CA
-from Common import Color
-
-from Render import RenderGameStartButton,RenderTitle,RenderPng
+from Common import Appearance as CA, Color, State, Font as CF
+from Render import RenderButton, RenderTitle, RenderPng, RenderContent, RenderPlayer, RenderArticle
+from MyLog import MyLog
 
 class GameSystem:
+    
     def __init__(self) -> None:
-        
-        # 设置窗口
-        self.title = CA.TITLE_NAME
+        self.title = CF.TITLE_NAME
         self.width = CA.SCREEN_WIDTH
         self.height = CA.SCREEN_HEIGHT
-        
-        # 设置一下屏幕和标题
         self.screen = g.display.set_mode((CA.SCREEN_WIDTH, CA.SCREEN_HEIGHT))
-        g.display.set_caption(CA.TITLE_NAME)
-        
-        # 设置时钟控制帧率
+        g.display.set_caption(CF.TITLE_NAME)
         self.clock = g.time.Clock()
         self.fps = CA.FPS
-        self.running = False
-    
-    
-        # 渲染开始按钮
         
-        self.rgsb = RenderGameStartButton.RenderGameStartButton()
-        self.rt= RenderTitle.RenderTitle()
+        self.state = State.GAME_STATE.GAME_INDEX
+        self.previous_state = None  
+        
+        self.start_time = 0.0
+        self.cur_time = 0.0
+        self.is_timestart = False
+    
+        self.rb = RenderButton.RenderButton()
+        self.rt = RenderTitle.RenderTitle()
         self.rp = RenderPng.RenderPng()
+        self.rc = RenderContent.RenderContent()
+        self.rpl = RenderPlayer.RenderPlayer()
+        self.ra = RenderArticle.RenderArticle() 
+        
+        self.game_data = None
         
     def Run(self):
-        """游戏主循环"""
-        self.running = True
-        while self.running:
-            # 处理事件
+      
+        while self.state != State.GAME_STATE.GAME_EXIT_FORMAL and self.state is not None:
+            
+            if self.state != self.previous_state:
+                self.__OnStateEnter(self.state, self.previous_state)
+                self.previous_state = self.state
+
+            # 获取帧间隔时间
+            dt = self.clock.tick(self.fps) / 1000.0
+            
             for event in g.event.get():
                 if event.type == g.QUIT:
-                    self.running = False
+                    self.state = State.GAME_STATE.GAME_EXIT_FORMAL
+                    continue
+                
+                self.__HandleEvent(event)
             
-            # # 更新游戏逻辑
-            self.__Update()
+            self.__UpdateState(dt)
+                
+            self.__Render(dt)
             
-            # # 渲染画面
-            # # 控制帧率
-            self.__Render()
-            self.clock.tick(self.fps)
-        
         # 游戏结束，清理资源
         self.__Quit()
         
-    def __Update(self):
+    def __OnStateEnter(self, new_state, old_state):
+   
+        if new_state == State.GAME_STATE.GAME_RUNNING:
+            self.ra.Reset()
+            self.rpl.StartTyping(self.ra)
+            self.is_timestart = True
+            self.start_time = g.time.get_ticks()
+            
+        elif new_state == State.GAME_STATE.GAME_REPORT:
+            self.is_timestart = False
+            
+        elif new_state == State.GAME_STATE.GAME_INDEX:
+            self.ra.Reset()
+            self.rpl.Reset()
+
+    def __HandleEvent(self, event):
         """
-        
-        更新游戏状态
-        
+        根据当前状态，分发事件给对应的处理器。
+        只处理离散的、一次性的事件。
         """
-        pass
+        if self.state == State.GAME_STATE.GAME_RUNNING:
+            self.state = self.rpl.HandleEvent(event, self.state)
+            return
+        
+        if self.state == State.GAME_STATE.GAME_REPORT:
+            MyLog.MyLog("in reposrtstate")
+            self.state = self.rb.HandleEvent(event, self.state)
+            return 
+
+        if self.state in [State.GAME_STATE.GAME_INDEX, State.GAME_STATE.GAME_INSTRUCTION, State.GAME_STATE.GAME_ARTICLE]:
+            self.state = self.rb.HandleEvent(event, self.state)
+            return
+
+    def __UpdateState(self, dt):
+        if self.state == State.GAME_STATE.GAME_RUNNING:
+            self.rpl.UpdateState(dt)
     
-    def __Render(self):
-        """
-        TODO: 统一来渲染游戏界面
-        渲染游戏画面
+    def __Render(self, dt):
+        self.cur_time = g.time.get_ticks()
         
-        """
-        # 渲染开始游戏按钮
+        if self.state in [State.GAME_STATE.GAME_INDEX, State.GAME_STATE.GAME_INSTRUCTION, State.GAME_STATE.GAME_ARTICLE, State.GAME_STATE.GAME_REPORT]:
+            self.screen.fill(Color.BACKGROUND_COLOR)
+            self.rb.Render(self.screen, self.state)
+            self.rt.Render(self.screen, self.state)
+            self.rc.Render(self.screen, self.state, is_ready=self.ra.is_ready)
+        elif self.state == State.GAME_STATE.GAME_RUNNING:
+            player_speed, mock_current_cps, current_lane_index, right_num = self.rpl.GetInfo()
+            scroll_dx_this_frame = -player_speed * dt
+            
+            elapsed_seconds = (self.cur_time - self.start_time) / 1000.0 if self.is_timestart else 0
+            cpm = (right_num / elapsed_seconds) * 60 if elapsed_seconds > 0 else 0
+            
+            self.rp.Render(self.screen, scroll_dx_this_frame, self.state)
+            self.rc.Render(self.screen, self.state, player_speed, mock_current_cps, current_lane_index, cpm)
+            self.rpl.Render(self.screen, self.state)
+            self.ra.Render(self.screen)
+            self.rb.Render(self.screen, self.state)
         
-        self.screen.fill(Color.WHITE)
-        # self.rp.RenderBackground(self.screen)
-        self.rgsb.Draw(self.screen)
-        self.rt.Draw(self.screen)
+        if self.state == State.GAME_STATE.GAME_ARTICLE_CHOOSING:
+            if self.ra.LoadAndProcess():
+                self.state = State.GAME_STATE.GAME_ARTICLE
+            else:
+                self.state = State.GAME_STATE.GAME_ARTICLE
+            
         g.display.flip()
     
     def __Quit(self):
         """
-        
-        清理并退出游戏
-        
+        清理并退出游戏 (保留)
         """
         g.quit()
+

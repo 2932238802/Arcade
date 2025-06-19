@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "*.css": "css",
+        "*.html": "html",
+        "*.asm": "asm",
+        "deque": "cpp",
+        "vector": "cpp",
+        "xstring": "cpp",
+        "limits": "cpp"
+    }
+}

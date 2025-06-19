@@ -1,6 +1,6 @@
 import pygame as g
 
-class Png:
+class PngFactory:
     
     @staticmethod
     def Load(path: str):
