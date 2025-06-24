@@ -24,8 +24,6 @@ class RenderContent:
             start_top_y =Appearance.ARTICLE_CHOOSE_BUTTON_INFO_SUC_Y
         )
         
-        
-    
     def Render(self,screen,state,player_speed=0.0,mock_current_cps=0.0,current_lane_index=0.0,right_num=0.0,is_ready=False):
         if state == State.GAME_STATE.GAME_INSTRUCTION:
             self.content.Draw(screen=screen)

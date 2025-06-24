@@ -62,6 +62,7 @@ class Article:
                     final_segments.append(current_segment)
 
         return [s for s in final_segments if s]
+
     
 class ArticleFactory():
     

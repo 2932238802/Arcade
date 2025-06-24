@@ -13,7 +13,11 @@ class RenderPlayer:
     def Reset(self):
         self.typing_cps = 0
         self.right_num = 0
-        print("RenderPlayer 状态已重置 ")
+        if self.player:
+            self.player.Reset() 
+        self.article_handler = None
+        
+        MyLog.MyLog("RenderPlayer 状态已完全重置。")
         
     def Render(self, screen, state):
         if state == State.GAME_STATE.GAME_RUNNING:
